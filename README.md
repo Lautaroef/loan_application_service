@@ -36,9 +36,21 @@ GRANT ALL PRIVILEGES ON DATABASE loan_company TO <username>;
 4. Run `npm install` from the root directory.
 5. Start the app with `npm run dev`.
 
+### Understanding the Data Model
+There are three tables on the database: users, roles, and loan applications.
+- **User**: Users registered in the system.
+- **Role**: Roles that can be assigned to users.
+- **LoanApplication**: Loan applications submitted by users.
+
+**Roles** define what a user can do. There are two roles:
+- **Admin**: Users who can see all the loan applications that have been submitted.
+- **Applicant**: Someone who wants to apply for a loan.
+
+A `User` is associated with one `Role`, and a `Role` can have many `User` entities.
+A `User` can have many `LoanApplication` entities, and each `LoanApplication` is associated with one `User`.
+
 ## How it works
 The API allows users to login and create a loan. Admins can login and see all loan applications.
-
 
 #### User Management
 

@@ -36,7 +36,7 @@ GRANT ALL PRIVILEGES ON DATABASE loan_company TO <username>;
 4. Run `npm install` from the root directory.
 5. Start the app with `npm run dev`.
 
-### How it works
+## How it works
 The API allows users to login and create a loan. Admins can login and see all loan applications.
 
 

@@ -19,7 +19,7 @@ router.post(
       .isDecimal({ decimal_digits: '2' })
       .withMessage('Amount must be a valid decimal'),
     body('term').isInt({ min: 1 }).withMessage('Term must be a positive integer'),
-    body('applicantId').isNumeric().withMessage('Applicant ID must be a number')
+    body('user.id').isInt().withMessage('User ID must be a valid integer')
   ],
   async (req: Request, res: Response) => {
     // Validate body

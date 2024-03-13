@@ -23,7 +23,7 @@ docker-compose up
 
 ### Run Locally (without Docker)
 1. Make sure PostgreSQL is installed, or download it from the [official website](https://www.postgresql.org/download/)
-2. Connect to your PostgreSQL with a superuser. If you don’t have a dedicated user for the application, you can create one by:
+2. Connect to your PostgreSQL with a superuser and create an user:
 ```bash
 CREATE USER <username> WITH ENCRYPTED PASSWORD '<mypassword>';
 
@@ -31,6 +31,7 @@ CREATE DATABASE loan_company;
 
 # Grant privileges to your user
 GRANT ALL PRIVILEGES ON DATABASE loan_company TO <username>;
+GRANT ALL PRIVILEGES ON SCHEMA public TO <username>;
 ```
 3. Set up `.env` file from .env.template. Fill in your DB user and password.
 4. Run `npm install` from the root directory.

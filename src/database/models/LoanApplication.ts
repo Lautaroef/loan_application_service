@@ -1,5 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config';
+import User from './User';
 
 interface LoanApplicationAttributes {
   id: number;
@@ -30,7 +31,7 @@ LoanApplication.init(
     applicantId: {
       type: DataTypes.INTEGER,
       references: {
-        model: 'User',
+        model: User,
         key: 'id'
       }
     },

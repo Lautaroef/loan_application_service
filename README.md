@@ -37,23 +37,21 @@ GRANT ALL PRIVILEGES ON SCHEMA public TO <username>;
 4. Run `npm install` from the root directory.
 5. Start the app with `npm run dev`.
 
-### Understanding the Data Model
+## Understanding the Data Model
 The database consists of three tables: users, roles, and loan applications.
-- **User**: Users registered in the system.
-- **Role**: Roles that can be assigned to users. The system creates one 'admin' and one 'applicant' user.
-- **LoanApplication**: Loan applications submitted by users. Applicants can only GET their own applications. Admins can see everyone's applications.
-> Upon successful login, a middleware is used to set `req.user`, for later comparing the `req.user.userId` with the `req.params.id`
-
-**Roles** define what a user can do. There are two roles:
-- **Admin**: Users who can see all the loan applications that have been submitted.
-- **Applicant**: Someone who wants to apply for a loan.
+- **Users**: Individuals registered in the system.
+- **Roles**: Defines the access level within the system, with two primary roles:
+  - **Admin**: Users who can view all loan applications.
+  - **Applicant**: Users who can apply for loans and view their applications.
+- **Loan Applications**: Requests for loans submitted by applicants.
 
 Admins can login and see all loan applications. Users with role `applicant` can only see their own applications.
 
 ### Register and Login into the system
-To start using the app, you would need an API testing program, such as **POSTMAN**. Then start hitting `http://localhost:3000/api/`.
+Use an API testing tool like Postman to interact with the endpoints at `http://localhost:3000/api/`.
 
-- Register using the **POST /api/auth/register** endpoint. It creates a user with role `applicant`. Accepts a body like:
+- **Register a User** (POST `/api/auth/register`)
+Creates a user with the `applicant` role.
 ```json
 {
   "username": "user",
@@ -68,35 +66,35 @@ Returns:
 }
 ```
 
-- Login using the **POST `/api/auth/login`** endpoint. Accepts a body like:
+- **Login User** (POST `/api/auth/login`)
 ```json
 {
   "username": "user",
   "password": "pass"
 }
 ```
+Use the returned token for setting the `Bearer <token>` for subsequent requests.
 
-- You will receive a `token` use it for setting the `Bearer <token>` on the `Auth` tab of Postman.
-   
-### Start creating loans
-#### Loan Application Management
-- **Submit a Loan Application** - POST /api/applications
-Submit a new loan application. **Requires JWT authentication.**
-It uses the `req.user.id` defined in the middleware for setting the `applicantId`.
+### Loan Application Management
+### Submit a Loan Application
+> When trying to access private resources, a middleware is used to set the `req.user`, which can be later accessed inside controllers to access the `userId` and `role` of the user making the request.
+
+(POST `/api/applications`) Submit a new loan application. Requires JWT authentication.
+
+> It uses the `req.user.id` defined in the middleware for setting the `applicantId` of the `LoanApplication` model.
+> 
 ```json
 {
   "amount": 10000.50,
   "term": 12,
 }
 ```
-Returns: Details of the submitted application.
+Returns details of the submitted application.
+### GET a Loan Application
+(GET `/api/applications/{id}`) Retrieve a specific loan application. Requires JWT authentication.
 
-- **GET a Loan Application** - GET /api/applications/{id}
-Requires JWT authentication.
-If you have specified a `token` of an `applicant` user, you can only access `loanApplications`'s where the `applicationId` is equal to the `userId` (defined thanks to the JWT token).
-Otherwise if you login with an admin token you can list all `loanApplication`'s
+> If you have specified a `token` of an `applicant` user, you can only access `loanApplications`'s where the `applicationId` is equal to the `req.user.userId` defined by the auth middleware. Otherwise, if you login with an admin user you can list all `loanApplication`'s
 
-Retrieves a specific loan application details. 
 ```json
 {
     "id": 1,
@@ -107,10 +105,9 @@ Retrieves a specific loan application details.
 }
 ```
 
-- **Retrieve All Loan Applications (Admin Only)** - GET /api/applications
-Requires JWT authentication and be logged in with an admin token.
-Admin-only endpoint to retrieve all loan applications.
-Returns: List of all loan applications.
+### Retrieve All Loan Applications (Admin Only)
+(GET `/api/applications`) Admin-only endpoint to retrieve all loan applications. Requires JWT authentication.
+
 ```json
 [
     {
@@ -120,21 +117,14 @@ Returns: List of all loan applications.
       "amount": 10000.50,
       "term": 12,
   },
-  {
-      "id": 2,
-      "applicantId": 4,
-      "status": "pending",
-      "amount": "2000.00",
-      "term": 1,
-  },
-...
+  ...
 ]
 ```
 
 ### Security Features
-- Passwords are hashed using `bcrypt` before storage.
-- Input validation and sanitization are implemented to prevent injection attacks (using `express-validator`).
+- Passwords are hashed using `bcrypt`.
+- Input validation and sanitization prevent injection attacks (using `express-validator`).
 - Rate limiting is applied to all endpoints to prevent brute-force attacks (using `express-rate-limit`).
 
 ### Types
-Add necessary types to `types.d.ts`
+Extend Express `Request` object in `types.d.ts` to include user authentication details.

@@ -2,6 +2,8 @@ import sequelize from './config';
 import User from './models/User';
 import Role from './models/Role';
 
+import bcrypt from 'bcrypt';
+
 async function seedDatabase() {
   await sequelize.sync({
     force: false, // Set force to true to drop and recreate tables
@@ -24,8 +26,8 @@ async function seedDatabase() {
     const users = await User.findAll();
     if (users.length === 0) {
       await User.bulkCreate([
-        { username: 'admin', password: 'admin', roleId: 1 },
-        { username: 'applicant', password: 'applicant', roleId: 2 }
+        { username: 'admin', password: await bcrypt.hash('admin', 10), roleId: 1 },
+        { username: 'applicant', password: await bcrypt.hash('applicant', 10), roleId: 2 }
       ]);
       console.log('Users table has been seeded');
     }

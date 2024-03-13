@@ -38,89 +38,103 @@ GRANT ALL PRIVILEGES ON SCHEMA public TO <username>;
 5. Start the app with `npm run dev`.
 
 ### Understanding the Data Model
-There are three tables on the database: users, roles, and loan applications.
+The database consists of three tables: users, roles, and loan applications.
 - **User**: Users registered in the system.
-- **Role**: Roles that can be assigned to users.
-- **LoanApplication**: Loan applications submitted by users.
+- **Role**: Roles that can be assigned to users. The system creates one 'admin' and one 'applicant' user.
+- **LoanApplication**: Loan applications submitted by users. Applicants can only GET their own applications. Admins can see everyone's applications.
+> Upon successful login, a middleware is used to set `req.user`, for later comparing the `req.user.userId` with the `req.params.id`
 
 **Roles** define what a user can do. There are two roles:
 - **Admin**: Users who can see all the loan applications that have been submitted.
 - **Applicant**: Someone who wants to apply for a loan.
 
-A `User` is associated with one `Role`, and a `Role` can have many `User` entities.
-A `User` can have many `LoanApplication` entities, and each `LoanApplication` is associated with one `User`.
+Admins can login and see all loan applications. Users with role `applicant` can only see their own applications.
 
-## How it works
-The API allows users to login and create a loan. Admins can login and see all loan applications.
+### Register and Login into the system
+To start using the app, you would need an API testing program, such as **POSTMAN**. Then start hitting `http://localhost:3000/api/`.
 
-#### User Management
-
-- **Register a User** - POST /api/auth/register
-Registers a new user.
+- Register using the **POST /api/auth/register** endpoint. It creates a user with role `applicant`. Accepts a body like:
 ```json
 {
-  "body": {
-    "username": "user",
-    "password": "pass",
-    "role": "applicant"
-  }
+  "username": "user",
+  "password": "pass",
 }
 ```
-Returns: User registration confirmation.
-
-- **Login User** - POST /api/auth/login
-Authenticates the user and returns a JWT token.
+Returns: 
 ```json
 {
-  "body": {
-    "username": "user",
-    "password": "pass"
-  }
+    "message": "User registered successfully",
+    "userId": 3
 }
 ```
-Returns: JWT token.
 
+- Login using the **POST `/api/auth/login`** endpoint. Accepts a body like:
+```json
+{
+  "username": "user",
+  "password": "pass"
+}
+```
+
+- You will receive a `token` use it for setting the `Bearer <token>` on the `Auth` tab of Postman.
+   
+### Start creating loans
 #### Loan Application Management
 - **Submit a Loan Application** - POST /api/applications
-Submits a new loan application. Requires JWT authentication.
+Submit a new loan application. **Requires JWT authentication.**
+It uses the `req.user.id` defined in the middleware for setting the `applicantId`.
 ```json
 {
-  "headers": {
-    "Authorization": "Bearer <JWT Token>"
-  },
-  "body": {
-    "applicantId": 1,
-    "amount": 10000.50,
-    "term": 12,
-  }
+  "amount": 10000.50,
+  "term": 12,
 }
 ```
 Returns: Details of the submitted application.
 
 - **GET a Loan Application** - GET /api/applications/{id}
-Retrieves a specific loan application. Requires JWT authentication.
+Requires JWT authentication.
+If you have specified a `token` of an `applicant` user, you can only access `loanApplications`'s where the `applicationId` is equal to the `userId` (defined thanks to the JWT token).
+Otherwise if you login with an admin token you can list all `loanApplication`'s
+
+Retrieves a specific loan application details. 
 ```json
-  "headers": {
-    "Authorization": "Bearer <JWT Token>"
-  }
+{
+    "id": 1,
+    "applicantId": 3,
+    "status": "pending",
+    "amount": 10000.50,
+    "term": 12,
+}
 ```
-Returns: Loan application details.
 
 - **Retrieve All Loan Applications (Admin Only)** - GET /api/applications
-Admin-only endpoint to retrieve all loan applications. Requires JWT authentication.
-```json
-  "headers": {
-    "Authorization": "Bearer <JWT Token>"
-  }
-```
+Requires JWT authentication and be logged in with an admin token.
+Admin-only endpoint to retrieve all loan applications.
 Returns: List of all loan applications.
-
-### Authentication and Authorization
-- Users can register as `applicant` or `admin`.
-- Endpoints require JWT for authentication, provided in the Authorization header.
-- Role-based access control is enforced; only admins can view all loan applications.
+```json
+[
+    {
+      "id": 1,
+      "applicantId": 3,
+      "status": "pending",
+      "amount": 10000.50,
+      "term": 12,
+  },
+  {
+      "id": 2,
+      "applicantId": 4,
+      "status": "pending",
+      "amount": "2000.00",
+      "term": 1,
+  },
+...
+]
+```
 
 ### Security Features
 - Passwords are hashed using `bcrypt` before storage.
 - Input validation and sanitization are implemented to prevent injection attacks (using `express-validator`).
 - Rate limiting is applied to all endpoints to prevent brute-force attacks (using `express-rate-limit`).
+
+### Types
+Add necessary types to `types.d.ts`

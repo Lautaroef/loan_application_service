@@ -5,6 +5,7 @@ require('dotenv').config();
 import sequelize from './database/config';
 import authRoutes from './routes/authRoutes';
 import loanApplicationRoutes from './routes/loanApplicationRoutes';
+import seedDatabase from './database/seed';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -30,7 +31,9 @@ app.listen(port, async () => {
   try {
     await sequelize.authenticate();
     console.log('Database connected.');
-    await sequelize.sync({ force: false }); // Set force to true only if you want to drop and recreate the tables
+
+    // Populate database with seed data
+    await seedDatabase();
     console.log('Database synced.');
   } catch (error) {
     console.error('Unable to connect to the database:', error);

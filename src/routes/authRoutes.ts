@@ -27,11 +27,18 @@ router.post(
     }
 
     const { username, password, role } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Check if user already exists
+    const user = await User.findOne({ where: { username } });
+    if (user) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
 
     try {
       // Find default role and create user
       const defaultRole = await Role.findOne({ where: { name: 'applicant' } });
+
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       const user = await User.create({
         username,

@@ -12,7 +12,7 @@ const port = process.env.PORT || 3000;
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 login requests per windowMs
+  max: 50,
   message: 'Too many login attempts from this IP, please try again after 5 minutes'
 });
 

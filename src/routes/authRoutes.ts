@@ -6,11 +6,11 @@ import jwt from 'jsonwebtoken';
 
 import User from '../database/models/User';
 import { Role } from '../database/models';
+import config from '../config';
 
 import { body, validationResult } from 'express-validator';
 
 const router = express.Router();
-const secret = (process.env.JWT_SECRET as string) || 'secret';
 
 router.post(
   '/auth/register',
@@ -85,7 +85,7 @@ router.post(
     }
 
     // Generate token
-    const token = jwt.sign({ userId: user.id, role: role.name }, secret, {
+    const token = jwt.sign({ userId: user.id, role: role.name }, config.jwtSecret, {
       expiresIn: '1h'
     });
     res.json({ message: 'Login successful', token });

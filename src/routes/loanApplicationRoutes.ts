@@ -13,13 +13,13 @@ const router = express.Router();
 // Anyone can use these routes
 router.post(
   '/applications',
+  verifyToken,
   [
     // TODO: move validation to a separate file
     body('amount')
       .isDecimal({ decimal_digits: '2' })
       .withMessage('Amount must be a valid decimal'),
-    body('term').isInt({ min: 1 }).withMessage('Term must be a positive integer'),
-    body('user.id').isInt().withMessage('User ID must be a valid integer')
+    body('term').isInt({ min: 1 }).withMessage('Term must be a positive integer')
   ],
   async (req: Request, res: Response) => {
     // Validate body
@@ -29,7 +29,7 @@ router.post(
     }
 
     const { amount, term } = req.body;
-    const applicantId = req.body.user.id;
+    const applicantId = req.user.userId;
 
     try {
       const application = await LoanApplication.create({
@@ -45,14 +45,23 @@ router.post(
   }
 );
 
-router.get('/applications/:id', async (req, res) => {
+router.get('/applications/:id', verifyToken, async (req, res) => {
+  const userId = req.user.userId;
+  const applicationId = req.params.id;
+
   try {
-    const application = await LoanApplication.findByPk(req.params.id);
-    if (application) {
-      res.json(application);
-    } else {
-      res.status(404).json({ error: 'Application not found' });
+    const application = await LoanApplication.findByPk(applicationId);
+
+    if (!application) {
+      return res.status(404).json({ error: 'Application not found' });
     }
+
+    // Check if the logged-in user is the owner of the application or if the user is an admin
+    if (application.applicantId !== userId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    res.json(application);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -61,7 +70,7 @@ router.get('/applications/:id', async (req, res) => {
 // Admins only
 router.get('/applications', verifyToken, adminRoleCheck, async (req, res) => {
   try {
-    const applications = await LoanApplication.findAll();
+    const applications = await LoanApplication.findAll({});
     res.json(applications);
   } catch (error) {
     res.status(500).json({ error: error.message });

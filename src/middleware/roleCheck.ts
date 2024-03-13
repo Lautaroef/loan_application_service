@@ -1,8 +1,8 @@
-// In src/middleware/roleCheck.ts
 import { Request, Response, NextFunction } from 'express';
 
 const adminRoleCheck = (req: Request, res: Response, next: NextFunction) => {
-  const userRole = req.headers['role']; // In a real situation, this would come from the "user.context"
+  const userRole = req.user.role;
+
   if (userRole === 'admin') {
     next();
   } else {
